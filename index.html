@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+ #board-camera-canvas {
+	width: 360px;
+	height: 640px;
+}
+
+#videoElement {
+	width: 960px;
+	height: 640px;
+	background-color: #666;
+}
+
+.green-board-card {
+	width: 360px;
+}
+
+
+
+
+
+
+
+.green-board-card .btn:hover {
+	background: #034e28;
+	background: linear-gradient(145deg, #034e28, #0ccf6d);
+	box-shadow: 20px 20px 60px #09a457, -20px -20px 60px #0dde75;
+	border: 1px solid #09a457;
+}
+
+.green-board-card .btn {
+  color:white;
+	position: relative;
+	transition: all 0.2s ease;
+	letter-spacing: .025em;
+	font-size: 1rem;
+	border-radius: 15px;
+  background: #0bc166;
+box-shadow:  17px 17px 34px #0aa859,
+             -17px -17px 34px #0cda73;
+	width: 50px;
+  height:50px;
+	border: 1px solid #0bc166;
+  margin:20%;
+  margin-left:2% !important;
+}
+.green-board-card .active{
+color: red !important;
+ 
+background: linear-gradient(145deg, #0aae5c, #0ccf6d);
+box-shadow:  20px 20px 60px #09a457,
+             -20px -20px 60px #0dde75;
+}
+
+.green-board-card .row {
+	flex-wrap: nowrap;
+	background-color: #0bc166;
+	height: 80px;
+}
+
+.green-board-card .col {
+	margin: 1%
+}       
+  </style>
+<body>
+
+<div ng-app="myApp" ng-controller="myCtrl">
+
+  <div class="green-board-card">
+    <div >
+      <video autoplay="true" id="videoElement" style="display:none">
+       
+      </video>
+ 
+     <canvas id="board-camera-canvas" >
+     </canvas>
+    <canvas id="teacher-camera" width="150" height="120" style="position: absolute;left:0px" ng-show="selfTeacherCamera"></canvas>
+     <div class="container" id="cameraActionButtons">
+      <div class="row">
+        <div class="col" >
+          <button type="button" class="btn " ng-class="selfTeacherCamera?'active':''" ng-click="startTeacherCamera()"><i class="fas fa-user"></i></button>
+        </div>
+        <div class="col"  ng-show="loadBoardCamera" >
+          <button type="button" class="btn " ng-show="loadBoardCamera" ng-click="captureBoardImage()"><i class="fas fa-camera-retro"></i></button> 
+       </div>
+        <div class="col" >
+          <button type="button" class="btn " ng-show="startBoardCamera" ng-click="startRecordingBoardCamera()"><i class="fas fa-dot-circle"></i></button>
+          <button type="button" class="btn  active" ng-show="stopBoardCamera"  ng-click="stopRecordingBoardCamera()"><i class="fas fa-dot-circle"></i></button>
+      
+        </div>
+      
+        <div class="col">
+          <button type="button" class="btn " ng-show="pauseBoardCamera" ng-click="pauseRecordingBoardCamera()"><i class="fas fa-pause-circle"></i></button>
+          <button type="button" class="btn active" ng-show="playBoardCamera"  ng-click="playRecordingBoardCamera()"><i class="fas fa-play-circle"></i></button>
+      
+        </div>
+        
+      </div>
+    </div>
+     
+    </div>
+    
+  </div>
+</div>
+
+<script>
+var app = angular.module('myApp', []);
+app.controller('myCtrl', function($scope) {
+
+    $scope.loadBoardCamera=true;
+    $scope.startBoardCamera=true;
+    $scope.stopBoardCamera=false;
+    $scope.pauseBoardCamera=false;
+    $scope.playBoardCamera=false;
+    $scope.selfTeacherCamera=false;
+
+    $scope.captureBoardImage = function(){
+      canvas.toBlob(function(blob) {
+  // blob ready, download it
+  let link = document.createElement('a');
+  link.download = 'example.png';
+
+  link.href = URL.createObjectURL(blob);
+  link.click();
+
+  // delete the internal blob reference, to let the browser clear memory from it
+  URL.revokeObjectURL(link.href);
+}, 'image/png');
+
+    }
+  
+    $scope.startRecordingBoardCamera = function(){
+    $scope.startBoardCamera=false;
+    $scope.stopBoardCamera=true;
+    $scope.pauseBoardCamera=true;
+    $scope.playBoardCamera=false;
+    mediaRecorder.start();
+    }
+  
+    $scope.stopRecordingBoardCamera = function(){
+    $scope.startBoardCamera=true;
+    $scope.stopBoardCamera=false;
+    $scope.pauseBoardCamera=false;
+    $scope.playBoardCamera=false;
+    mediaRecorder.stop();
+    }
+  
+    $scope.pauseRecordingBoardCamera = function(){
+      $scope.startBoardCamera=false;
+    $scope.stopBoardCamera=true;
+    $scope.pauseBoardCamera=false;
+    $scope.playBoardCamera=true;
+    mediaRecorder.pause();
+    }
+  
+    $scope.playRecordingBoardCamera = function(){
+      $scope.startBoardCamera=false;
+    $scope.stopBoardCamera=true;
+    $scope.pauseBoardCamera=true;
+    $scope.playBoardCamera=false;
+    mediaRecorder.resume();
+    }
+    $scope.startTeacherCamera = function(){
+      if($scope.selfTeacherCamera){
+        $scope.selfTeacherCamera=false;
+      }else{
+        $scope.selfTeacherCamera=true;
+      }
+
+    }
+  
+    var video = document.querySelector("#videoElement");
+    var constraints = {
+  audio: false,
+  video: {
+    width: { min: 270, max: 270 },
+    height: { min: 480, max: 480},
+  },
+};
+
+    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // Not adding `{ audio: true }` since we only want video now
+    navigator.mediaDevices.getUserMedia({video:true}).then(function(stream) {
+        //video.src = window.URL.createObjectURL(stream);
+        console.log(stream)
+        video.srcObject = stream;
+        video.play();
+    });
+}
+var canvas = document.getElementById('board-camera-canvas');
+var ctx    = canvas.getContext('2d');
+var video  = document.getElementById('videoElement');
+
+video.addEventListener('play', function () {
+    var $this = this; //cache
+    (function loop() {
+        if (!$this.paused && !$this.ended) {
+            ctx.drawImage($this, 0, 0);
+            setTimeout(loop, 1000 / 30); // drawing at 30fps
+        }
+    })();
+}, 0);
+var teacherCanvas = document.getElementById("teacher-camera");
+var teacherCameraCtx = teacherCanvas.getContext("2d");
+teacherCameraCtx.fillStyle = "blue";
+teacherCameraCtx.fillRect(0, 0, teacherCanvas.width, teacherCanvas.height);
+//we use an HTML Canvas as source of the MediaStream, and stop recording after 9 seconds.
+
+// Optional frames per second argument.
+var stream = canvas.captureStream(25);
+var recordedChunks = [];
+
+console.log(stream);
+var options = { mimeType: "video/webm; codecs=vp9" };
+mediaRecorder = new MediaRecorder(stream, options);
+
+mediaRecorder.ondataavailable = handleDataAvailable;
+
+
+function handleDataAvailable(event) {
+  console.log("data-available");
+  if (event.data.size > 0) {
+    recordedChunks.push(event.data);
+    console.log(recordedChunks);
+    download();
+  } else {
+    // ...
+  }
+}
+function download() {
+  var blob = new Blob(recordedChunks, {
+    type: "video/webm"
+  });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style = "display: none";
+  a.href = url;
+  a.download = "test.webm";
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+
+});
+
+</script>
+
+</body>
+</html>
